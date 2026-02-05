@@ -2,43 +2,34 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaCalendarAlt, FaClock, FaUsers, FaUtensils, FaPhone, FaEnvelope, FaCheck, FaSpinner, FaExclamationTriangle } from 'react-icons/fa'
-
-const timeSlots = [
-  '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM',
-  '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM'
-]
-
-const experienceOptions = [
-  { id: 'fine-dining', name: 'Fine Dining', description: 'Elegant ambiance for special occasions' },
-  { id: 'cafe', name: 'Café', description: 'Casual setting for coffee and light meals' },
-  { id: 'private', name: 'Private Dining', description: 'Exclusive room for intimate gatherings' }
-]
+import { FaCalendarAlt, FaPhone, FaEnvelope, FaCheck, FaSpinner, FaUser, FaStar, FaClock, FaMapMarkerAlt, FaWineGlass } from 'react-icons/fa'
 
 interface ReservationResponse {
   id: string
+  confirmation_number?: string
   message: string
   email_sent: boolean
   email_note: string
   reservation: {
     name: string
-    date: string
-    time: string
-    guests: number
-    experience: string
+    email: string
+    phone: string
+    confirmation_number?: string
   }
 }
+
+const features = [
+  { icon: FaStar, text: 'Three Michelin Stars' },
+  { icon: FaWineGlass, text: 'Award-Winning Wine List' },
+  { icon: FaClock, text: 'Open 5 PM - 11 PM Daily' },
+  { icon: FaMapMarkerAlt, text: 'Empire State Building' }
+]
 
 export default function ReservationPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
-    date: '',
-    time: '',
-    guests: 2,
-    experience: 'fine-dining',
-    specialRequests: ''
+    phone: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -50,34 +41,64 @@ export default function ReservationPage() {
     setIsSubmitting(true)
     setError('')
 
+    if (!formData.name.trim()) {
+      setError('Please enter your name')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!formData.email.trim()) {
+      setError('Please enter your email')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('Please enter a valid email address')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!formData.phone.trim()) {
+      setError('Please enter your phone number')
+      setIsSubmitting(false)
+      return
+    }
+
     try {
       const res = await fetch('http://localhost:5000/api/reservations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          date: new Date().toISOString().split('T')[0],
+          time: 'To be confirmed',
+          guests: 1,
+          experience: 'contact-request'
+        }),
       })
 
       if (!res.ok) {
-        throw new Error('Failed to create reservation')
+        throw new Error('Network response was not ok')
       }
 
-      const data: ReservationResponse = await res.json()
+      const data = await res.json()
       setResponse(data)
       setIsSubmitted(true)
     } catch (err) {
       setResponse({
-        id: `LOCAL-${Date.now()}`,
-        message: 'Reservation confirmed!',
+        id: `REQ-${Date.now()}`,
+        message: 'Request submitted!',
         email_sent: false,
-        email_note: 'Your reservation has been saved. Please save this confirmation.',
+        email_note: 'Your request has been saved. We will contact you shortly.',
         reservation: {
           name: formData.name,
-          date: formData.date,
-          time: formData.time,
-          guests: formData.guests,
-          experience: formData.experience
+          email: formData.email,
+          phone: formData.phone
         }
       })
       setIsSubmitted(true)
@@ -88,62 +109,58 @@ export default function ReservationPage() {
 
   if (isSubmitted && response) {
     return (
-      <div className="min-h-screen bg-warmWhite pt-24 flex items-center justify-center">
+      <div className="min-h-screen bg-white pt-24 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-xl p-12 text-center max-w-lg mx-4"
+          className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl p-12 text-center max-w-lg mx-4 border border-gray-100"
         >
-          <div className="w-20 h-20 bg-olive/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FaCheck className="text-olive text-3xl" />
+          <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <FaCheck className="text-white text-4xl" />
           </div>
-          <h2 className="font-playfair text-3xl font-bold text-charcoal mb-4">Reservation Confirmed!</h2>
           
-          <div className="bg-cream rounded-xl p-6 mb-6 text-left">
-            <h3 className="font-semibold text-charcoal mb-4">Booking Details:</h3>
-            <div className="space-y-2 text-charcoal/80">
-              <p><span className="font-medium">Name:</span> {response.reservation.name}</p>
-              <p><span className="font-medium">Date:</span> {response.reservation.date}</p>
-              <p><span className="font-medium">Time:</span> {response.reservation.time}</p>
-              <p><span className="font-medium">Guests:</span> {response.reservation.guests}</p>
-              <p><span className="font-medium">Experience:</span> {response.reservation.experience.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+          <h1 className="text-3xl font-bold text-charcoal mb-4">Request Submitted!</h1>
+          <p className="text-gray-600 mb-8">Thank you for choosing Gastronome.</p>
+          
+          <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 text-left mb-6 border border-gray-100">
+            <h3 className="font-semibold text-charcoal mb-4 flex items-center gap-2">
+              <FaUser className="text-amber-500" />
+              Your Details
+            </h3>
+            <div className="space-y-3 text-sm text-gray-600">
+              <p className="flex items-center gap-3">
+                <span className="w-20 font-medium text-charcoal">Name:</span>
+                <span>{response.reservation.name}</span>
+              </p>
+              <p className="flex items-center gap-3">
+                <span className="w-20 font-medium text-charcoal">Email:</span>
+                <span>{response.reservation.email}</span>
+              </p>
+              <p className="flex items-center gap-3">
+                <span className="w-20 font-medium text-charcoal">Phone:</span>
+                <span>{response.reservation.phone}</span>
+              </p>
             </div>
-            <div className="mt-4 pt-4 border-t border-cream">
-              <p className="text-sm text-charcoal/60">
-                <strong>Confirmation #:</strong> {response.id}
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-sm text-amber-600 font-medium">
+                Confirmation #: {response.confirmation_number || response.id}
               </p>
             </div>
           </div>
 
-          <div className={`p-4 rounded-lg mb-6 ${response.email_sent ? 'bg-olive/10' : 'bg-accent/10'}`}>
-            <p className="text-sm text-charcoal/70">
-              {response.email_sent ? '✉️ ' : '📋 '}
-              {response.email_note}
-            </p>
-          </div>
-
-          <p className="text-charcoal/70 mb-6">
-            Please arrive 10 minutes before your reservation time.
+          <p className="text-gray-600 mb-6">
+            Questions? Call our concierge
             <br />
-            <span className="text-burgundy font-medium">📞 +1 (555) 123-4567</span>
+            <span className="text-amber-600 font-semibold text-lg">+1 (212) 736-3100</span>
           </p>
           
           <button
             onClick={() => {
               setIsSubmitted(false)
               setResponse(null)
-              setFormData({
-                name: '',
-                email: '',
-                phone: '',
-                date: '',
-                time: '',
-                guests: 2,
-                experience: 'fine-dining',
-                specialRequests: ''
-              })
+              setFormData({ name: '', email: '', phone: '' })
             }}
-            className="bg-burgundy hover:bg-primary text-white px-8 py-3 rounded-full font-semibold transition-all"
+            className="bg-gradient-to-r from-charcoal to-gray-800 hover:from-amber-500 hover:to-yellow-400 text-white hover:text-black px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg"
           >
             Make Another Reservation
           </button>
@@ -153,206 +170,183 @@ export default function ReservationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-warmWhite pt-24">
-      <section className="py-16 bg-cream">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div className="min-h-screen bg-white pt-24">
+      {/* Hero Section */}
+      <section className="relative py-20 bg-gradient-to-br from-charcoal via-gray-900 to-black overflow-hidden">
+        <div className="absolute inset-0 opacity-30">
+          <img
+            src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1600"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-3 mb-4"
+            className="flex items-center justify-center gap-3 mb-6"
           >
-            <FaCalendarAlt className="text-burgundy text-3xl" />
+            <div className="bg-gradient-to-br from-amber-500 to-yellow-400 p-4 rounded-full shadow-lg">
+              <FaCalendarAlt className="text-black text-2xl" />
+            </div>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="font-playfair text-5xl md:text-6xl font-bold text-charcoal mb-6"
+            className="text-4xl md:text-6xl font-playfair font-bold text-white mb-6"
           >
-            Reserve Your Table
+            Reserve Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">Experience</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-charcoal/70 text-lg max-w-2xl mx-auto"
+            className="text-xl text-gray-300 max-w-2xl mx-auto mb-10"
           >
-            Book your dining experience and let us prepare something special for you
+            Share your details and our concierge team will personally arrange your perfect dining experience
           </motion.p>
+          
+          {/* Features */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap items-center justify-center gap-6"
+          >
+            {features.map((feature) => (
+              <div key={feature.text} className="flex items-center gap-2 text-gray-400">
+                <feature.icon className="text-amber-400" />
+                <span className="text-sm">{feature.text}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.form
+      {/* Form Section */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.form 
+            onSubmit={handleSubmit} 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            onSubmit={handleSubmit}
-            className="bg-white rounded-2xl shadow-xl p-8 md:p-12"
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100"
           >
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  <FaEnvelope className="inline mr-2 text-burgundy" />
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy"
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  <FaPhone className="inline mr-2 text-burgundy" />
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy"
-                  placeholder="+1 (555) 123-4567"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  <FaUsers className="inline mr-2 text-burgundy" />
-                  Number of Guests
-                </label>
-                <select
-                  value={formData.guests}
-                  onChange={(e) => setFormData({ ...formData, guests: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy bg-white"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20].map(num => (
-                    <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  <FaCalendarAlt className="inline mr-2 text-burgundy" />
-                  Date
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  <FaClock className="inline mr-2 text-burgundy" />
-                  Preferred Time
-                </label>
-                <select
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  required
-                  className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy bg-white"
-                >
-                  <option value="">Select a time</option>
-                  {timeSlots.map(time => (
-                    <option key={time} value={time}>{time}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-charcoal mb-2">Contact Information</h2>
+              <p className="text-gray-500 text-sm">Our concierge will reach out to finalize your booking</p>
             </div>
 
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-charcoal mb-4">
-                <FaUtensils className="inline mr-2 text-burgundy" />
-                Dining Experience
-              </label>
-              <div className="grid md:grid-cols-3 gap-4">
-                {experienceOptions.map((option) => (
-                  <label
-                    key={option.id}
-                    className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      formData.experience === option.id
-                        ? 'border-burgundy bg-burgundy/5'
-                        : 'border-cream hover:border-burgundy/50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="experience"
-                      value={option.id}
-                      checked={formData.experience === option.id}
-                      onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                      className="sr-only"
-                    />
-                    <span className="font-semibold text-charcoal">{option.name}</span>
-                    <span className="text-sm text-charcoal/60 mt-1">{option.description}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <label className="block text-charcoal font-medium mb-2">
+                  Full Name <span className="text-amber-500">*</span>
+                </label>
+                <div className="relative">
+                  <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all text-lg"
+                    placeholder="John Doe"
+                  />
+                </div>
+              </motion.div>
 
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-charcoal mb-2">
-                Special Requests (Optional)
-              </label>
-              <textarea
-                value={formData.specialRequests}
-                onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
-                rows={4}
-                className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy resize-none"
-                placeholder="Allergies, dietary restrictions, special occasions..."
-              />
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <label className="block text-charcoal font-medium mb-2">
+                  Email Address <span className="text-amber-500">*</span>
+                </label>
+                <div className="relative">
+                  <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all text-lg"
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <label className="block text-charcoal font-medium mb-2">
+                  Phone Number <span className="text-amber-500">*</span>
+                </label>
+                <div className="relative">
+                  <FaPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all text-lg"
+                    placeholder="+1 (212) 555-0123"
+                  />
+                </div>
+              </motion.div>
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
-                <FaExclamationTriangle />
-                <span>{error}</span>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl"
+              >
+                <p className="text-red-700 text-sm">{error}</p>
+              </motion.div>
             )}
 
-            <button
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-burgundy hover:bg-primary text-white py-4 rounded-full font-semibold text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="w-full mt-8 bg-gradient-to-r from-charcoal to-gray-800 hover:from-amber-500 hover:to-yellow-400 text-white hover:text-black py-4 px-8 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg text-lg"
             >
               {isSubmitting ? (
                 <>
                   <FaSpinner className="animate-spin" />
-                  Processing...
+                  Submitting...
                 </>
               ) : (
-                'Confirm Reservation'
+                <>
+                  Request Reservation
+                </>
               )}
-            </button>
+            </motion.button>
 
-            <p className="text-center text-sm text-charcoal/60 mt-6">
-              By making a reservation, you agree to our cancellation policy. 
-              Please arrive 10 minutes before your reservation time.
+            <p className="text-center text-gray-400 text-sm mt-6">
+              By submitting, you agree to be contacted by our concierge team
             </p>
           </motion.form>
+
+          {/* Contact Info */}
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 text-sm mb-2">Prefer to speak with us directly?</p>
+            <a href="tel:+12127363100" className="text-amber-600 font-semibold text-lg hover:text-amber-700 transition-colors">
+              +1 (212) 736-3100
+            </a>
+          </div>
         </div>
       </section>
     </div>

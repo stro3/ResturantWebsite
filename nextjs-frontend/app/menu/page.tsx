@@ -184,38 +184,76 @@ export default function MenuPage() {
   }, [selectedCategory, selectedExperience, searchQuery])
 
   return (
-    <div className="min-h-screen bg-warmWhite pt-24">
-      <section className="py-16 bg-cream">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div className="min-h-screen bg-white pt-24">
+      {/* Hero Section */}
+      <section className="relative py-24 bg-gradient-to-br from-charcoal via-gray-900 to-black overflow-hidden">
+        <div className="absolute inset-0 opacity-30">
+          <img
+            src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-amber-400 font-medium tracking-widest uppercase mb-4"
+          >
+            Culinary Excellence
+          </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-playfair text-5xl md:text-6xl font-bold text-charcoal mb-6"
+            className="font-playfair text-5xl md:text-7xl font-bold text-white mb-6"
           >
-            Our Menu
+            Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">Menu</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-charcoal/70 text-lg max-w-2xl mx-auto"
+            className="text-gray-300 text-lg max-w-2xl mx-auto"
           >
-            Explore our diverse selection of dishes crafted with passion and the finest ingredients
+            Each dish tells a story of passion, precision, and the finest ingredients sourced from around the world
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center justify-center gap-8 mt-8"
+          >
+            <div className="text-center">
+              <p className="text-3xl font-bold text-amber-400">200+</p>
+              <p className="text-gray-400 text-sm">Dishes</p>
+            </div>
+            <div className="w-px h-12 bg-gray-600" />
+            <div className="text-center">
+              <p className="text-3xl font-bold text-amber-400">5</p>
+              <p className="text-gray-400 text-sm">Experiences</p>
+            </div>
+            <div className="w-px h-12 bg-gray-600" />
+            <div className="text-center">
+              <p className="text-3xl font-bold text-amber-400">100%</p>
+              <p className="text-gray-400 text-sm">Fresh</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      <section className="py-8 bg-white border-b border-cream sticky top-20 z-40">
+      {/* Sticky Filter Bar */}
+      <section className="py-6 bg-white border-b border-gray-100 sticky top-20 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
             <div className="relative w-full lg:w-80">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40" />
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search dishes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-cream rounded-full focus:outline-none focus:ring-2 focus:ring-burgundy"
+                className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
               />
             </div>
 
@@ -224,10 +262,10 @@ export default function MenuPage() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
                     selectedCategory === cat
-                      ? 'bg-burgundy text-white'
-                      : 'bg-cream text-charcoal hover:bg-burgundy/10'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-black shadow-lg'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   {cat}
@@ -235,12 +273,12 @@ export default function MenuPage() {
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
-              <FaFilter className="text-charcoal/60" />
+            <div className="flex items-center gap-3 bg-gray-100 rounded-full px-4 py-2">
+              <FaFilter className="text-amber-500" />
               <select
                 value={selectedExperience}
                 onChange={(e) => setSelectedExperience(e.target.value)}
-                className="px-4 py-2 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy bg-white"
+                className="bg-transparent focus:outline-none text-gray-700 font-medium"
               >
                 {experiences.map((exp) => (
                   <option key={exp} value={exp}>{exp}</option>
@@ -251,7 +289,8 @@ export default function MenuPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      {/* Menu Grid */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatePresence mode="wait">
             <motion.div
@@ -267,47 +306,50 @@ export default function MenuPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all border border-cream group"
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all border border-gray-100 group"
                 >
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-56 overflow-hidden">
                     <img
                       src={item.image}
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     {item.isSignature && (
-                      <div className="absolute top-4 left-4 bg-burgundy text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        <FaFire /> Signature
+                      <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-yellow-400 text-black px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                        <FaFire /> Chef's Special
                       </div>
                     )}
                     {item.isVeg && (
-                      <div className="absolute top-4 right-4 bg-olive text-white p-2 rounded-full">
-                        <FaLeaf className="text-xs" />
+                      <div className="absolute top-4 right-4 bg-green-500 text-white p-2 rounded-full shadow-lg">
+                        <FaLeaf className="text-sm" />
                       </div>
                     )}
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                      <span className="text-white/90 text-sm font-medium bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full">{item.experience}</span>
+                      <div className="flex items-center gap-1.5 text-amber-400 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <FaStar />
+                        <span className="font-semibold">{item.rating}</span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-burgundy text-sm font-medium">{item.experience}</span>
-                      <div className="flex items-center gap-1 text-accent text-sm">
-                        <FaStar />
-                        <span>{item.rating}</span>
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-charcoal group-hover:text-amber-600 transition-colors">{item.name}</h3>
+                        <span className="text-amber-600 text-xs font-medium uppercase tracking-wider">{item.category}</span>
                       </div>
+                      <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-500">${item.price}</span>
                     </div>
+                    <p className="text-gray-500 text-sm mb-5 line-clamp-2">{item.description}</p>
 
-                    <h3 className="text-xl font-bold text-charcoal mb-2">{item.name}</h3>
-                    <p className="text-charcoal/60 text-sm mb-4 line-clamp-2">{item.description}</p>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-burgundy">${item.price}</span>
-                      <button
-                        onClick={() => handleAddToCart(item.name)}
-                        className="bg-burgundy hover:bg-primary text-white px-4 py-2 rounded-full text-sm font-medium transition-all"
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleAddToCart(item.name)}
+                      className="w-full bg-gradient-to-r from-charcoal to-gray-800 hover:from-amber-500 hover:to-yellow-400 text-white hover:text-black py-3 rounded-full text-sm font-semibold transition-all duration-300"
+                    >
+                      Add to Cart
+                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -319,21 +361,45 @@ export default function MenuPage() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="fixed bottom-8 right-8 bg-burgundy text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-50"
+              className="fixed bottom-8 right-8 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 z-50"
             >
-              <span className="text-2xl">✓</span>
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-xl">✓</span>
+              </div>
               <div>
-                <p className="font-semibold">{addedItem}</p>
-                <p className="text-sm text-white/80">Added to cart! Go to Order Online page.</p>
+                <p className="font-bold">{addedItem}</p>
+                <p className="text-sm text-white/80">Added to cart!</p>
               </div>
             </motion.div>
           )}
 
           {filteredItems.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-charcoal/60 text-lg">No dishes found matching your criteria</p>
+            <div className="text-center py-20">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaSearch className="text-3xl text-gray-400" />
+              </div>
+              <p className="text-gray-600 text-xl font-medium">No dishes found</p>
+              <p className="text-gray-400 mt-2">Try adjusting your search or filters</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-charcoal to-gray-900">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-playfair text-3xl md:text-4xl font-bold text-white mb-4">
+            Can't Decide?
+          </h2>
+          <p className="text-gray-400 text-lg mb-8">
+            Let our sommelier and chef create a personalized tasting menu just for you
+          </p>
+          <a
+            href="/reservation"
+            className="inline-block bg-gradient-to-r from-amber-500 to-yellow-400 text-black px-8 py-4 rounded-full font-semibold hover:shadow-lg hover:shadow-amber-500/30 transition-all"
+          >
+            Book a Tasting Experience
+          </a>
         </div>
       </section>
     </div>

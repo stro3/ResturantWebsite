@@ -25,12 +25,31 @@ interface CartItem {
 export default function OrderPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [customerEmail, setCustomerEmail] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
+  const [customerName, setCustomerName] = useState('')
   const [isOrdering, setIsOrdering] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [orderId, setOrderId] = useState('')
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return
+    if (!customerName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    if (!customerEmail.trim()) {
+      alert('Please enter your email address')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+      alert('Please enter a valid email address')
+      return
+    }
+    if (!customerPhone.trim()) {
+      alert('Please enter your phone number')
+      return
+    }
     if (!deliveryAddress.trim()) {
       alert('Please enter your delivery address')
       return
@@ -41,6 +60,9 @@ export default function OrderPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
           items: cart.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
           total: total,
           deliveryAddress: deliveryAddress,
@@ -52,11 +74,17 @@ export default function OrderPage() {
       setOrderPlaced(true)
       setCart([])
       setDeliveryAddress('')
+      setCustomerEmail('')
+      setCustomerPhone('')
+      setCustomerName('')
     } catch (error) {
       setOrderId('ORD-' + Date.now())
       setOrderPlaced(true)
       setCart([])
       setDeliveryAddress('')
+      setCustomerEmail('')
+      setCustomerPhone('')
+      setCustomerName('')
     } finally {
       setIsOrdering(false)
     }
@@ -234,15 +262,65 @@ export default function OrderPage() {
                       ))}
                     </div>
 
+                    <div className="bg-cream/30 p-6 rounded-xl mb-6 border border-burgundy/10">
+                      <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center gap-2">
+                        <div className="w-8 h-8 bg-burgundy/10 rounded-full flex items-center justify-center">
+                          <span className="text-burgundy font-bold text-sm">1</span>
+                        </div>
+                        Customer Information
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-charcoal mb-2">
+                            Full Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            placeholder="Enter your full name"
+                            className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-charcoal mb-2">
+                            Email Address <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="email"
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                            placeholder="your.email@example.com"
+                            className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-charcoal mb-2">
+                            Phone Number <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            value={customerPhone}
+                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            placeholder="+1 (555) 123-4567"
+                            className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-charcoal mb-2">
                         <FaMapMarkerAlt className="inline mr-2 text-burgundy" />
-                        Delivery Address
+                        Delivery Address <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         value={deliveryAddress}
                         onChange={(e) => setDeliveryAddress(e.target.value)}
-                        placeholder="Enter your full address..."
+                        placeholder="Enter your full address with street, city, state, and zip code..."
                         className="w-full px-4 py-3 border border-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy resize-none"
                         rows={3}
                       />
